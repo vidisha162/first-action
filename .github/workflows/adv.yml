@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: check code style:
+      - name: check code style
         run: |
           echo "checking code quality"
           echo "no linting error found"
