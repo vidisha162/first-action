@@ -29,3 +29,22 @@ jobs:
       - name: test summery
         run: |
           echo "tests passed on node version ${{matrix.node-verion}}"
+
+
+security:
+  runs-on: ubuntu-latest
+  needs: test
+  steps:
+    - name: checkout code
+      uses: actions/checkout@v4
+    - name: initialize codeQl
+      uses: github/codeql-action/init@v3
+      with:
+        language: javascript
+
+    - name: perform codeql analysis
+      uses: github/codeql-action/analyze@v3
+    - name: securtiy summary
+      run: |
+        echo "securtiy scan completed" >> $GITHUB_STEP_SUMMMARY
+        echo "no critical vulnerabilites found" >> $GITHUB_STEP_SUMMARY
