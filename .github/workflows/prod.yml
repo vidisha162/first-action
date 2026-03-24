@@ -52,3 +52,53 @@ jobs:
         run: |
           echo "security scan completed" >> $GITHUB_STEP_SUMMARY
           echo "no critical vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: build application
+        run: |
+          echo "building prod app"
+          mkdir -p build
+          cat > build/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>CI/CD Demo</title>
+            <style>
+              body { font-family: system-ui; max-width: 800px; margin: 50px auto; padding: 20px; }
+              .success { color: green; background: #e6ffe6; padding: 20px; border-radius: 10px; }
+              .badge { background: #2cbe4e; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+              h1 { color: #333; }
+            </style>
+          </head>
+          <body>
+            <div class="success">
+              <span class="badge">🚀 CI/CD PIPELINE</span>
+              <h1>✅ Deployment Successful!</h1>
+              <p>This page was automatically deployed by GitHub Actions!</p>
+              <p>Deployed: $(date)</p>
+              <p>Pipeline: prod ci/cd</p>
+              <hr>
+              <small>Powered by GitHub Actions</small>
+            </div>
+          </body>
+          </html>
+          EOF
+          echo "build complete"
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod build
+          path: build/
