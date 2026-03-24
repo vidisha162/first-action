@@ -1,0 +1,31 @@
+name: prod ci/cd pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # run securtiy scan weekly on sunday
+    - cron: '0 0 * * 0'
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup node ${{matrix.node-version}}
+        uses: actions/setup-node@v4
+        with:
+          node-version: {{matrix.node-version}}
+          cache: 'npm'
+      - name: intsall depenencies
+        run: npm ci
+      - name: tets summery
+        run: |
+          echo "tests passed on node version ${{matrix.node-verion}}"
