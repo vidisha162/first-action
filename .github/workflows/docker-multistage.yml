@@ -28,7 +28,7 @@ jobs:
           docker build -t myapp:${{ github.sha }} .
           docker tag myapp:${{ github.sha }} myapp:latest
       - name: show image size
-        run: docker image | grep myapp
+        run: docker images | grep myapp
       - name: test container
         run: |
           docker run -d -p 3000:3000 --name test-container myapp:latest 
