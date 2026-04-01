@@ -1,0 +1,52 @@
+name: multi-stage docker ci/cd
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: setup node.js
+        uses: actions/setup=node@v4
+        with:
+          version: '22'
+      - name: install dependencies
+        run: npm install
+      - name: run test
+        run: npm test
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: build multi-stage docker image
+        run : |
+          docker build -t myapp:${{ github.sha }} .
+          docker tag myapp:${{ github.sha }} myapp:latest
+      - name: show image size
+        run: docker image | grep myapp
+      - name: test container
+        run: |
+          docker run -d -p 3000:3000 --name test-container myapp:latest 
+          sleep 5 
+          curl -f http://localhost:3000/health
+          docker stop test-container
+          docker rm test-container
+
+      - name: upload artifacts
+        uses: actions/upload-artifacts@v4
+        with:
+          name: mutli-stage-docker-image
+          path: myapp-image.tar
+      - name: Build summary
+        run: |
+          echo "## 🐳 Multi-Stage Docker Build" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Image built: myapp:latest" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Image size: $(docker images myapp:latest --format '{{.Size}}')" >> $GITHUB_STEP_SUMMARY
+          echo "🔒 Runs as non-root user" >> $GITHUB_STEP_SUMMARY
+          echo "❤️ Health check configured" >> $GITHUB_STEP_SUMMARY
+
